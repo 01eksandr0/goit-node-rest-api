@@ -1,13 +1,16 @@
 import Joi from "joi";
 
 export const createContactSchema = Joi.object({
-  name: Joi.string().min(3).max(20),
-  email: Joi.string().email({
-    minDomainSegments: 2,
-    tlds: { allow: ["com", "net"] },
-  }),
+  name: Joi.string().min(3).max(20).required(),
+  email: Joi.string()
+    .required()
+    .email({
+      minDomainSegments: 2,
+      tlds: { allow: ["com", "net"] },
+    })
+    .min(3),
   phone: Joi.string()
-    .optional()
+    .required()
     .pattern(/^[0-9]{10}$/),
 });
 
