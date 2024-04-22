@@ -8,44 +8,55 @@ export const getAllContacts = async (req, res) => {
   res.json(await contactsService.listContacts());
 };
 
-export const getOneContact = async (req, res) => {
-  const { id } = req.params;
-  const contact = await contactsService.getContactById(id.slice(1));
-  console.log(contact);
-  if (contact) res.json(contact);
-  else res.status(404).json({ message: HttpError(404).message });
-};
-
-export const deleteContact = async (req, res) => {
-  const { id } = req.params;
-  const contact = await contactsService.removeContact(id.slice(1));
-  console.log(contact);
-  if (contact) res.json(contact);
-  else res.status(404).json({ message: HttpError(404).message });
-};
-
-export const createContact = async (req, res) => {
-  const query = req.query;
-  const schema = createContactSchema.validate(query);
-  if (schema.error) {
-    res.status(400).json({ message: schema.error.details[0].message });
-  } else {
-    const { name, email, phone } = query;
-    const contact = await contactsService.addContact(name, email, phone);
-    res.status(201).json(contact);
+export const getOneContact = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const contact = await contactsService.getContactById(id.slice(1));
+    if (!contact) throw HttpError(404);
+    else res.json(contact);
+  } catch (error) {
+    next(error);
   }
 };
 
-export const updateContact = async (req, res) => {
-  const query = req.query;
-  const schema = updateContactSchema.validate(query);
-  if (schema.error) {
-    res.status(400).json({ message: schema.error.details[0].message });
-  } else {
+export const deleteContact = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const contact = await contactsService.removeContact(id.slice(1));
+    if (!contact) throw HttpError(404);
+    else res.json(contact);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createContact = async (req, res, next) => {
+  try {
+    const query = req.query;
+    const schema = createContactSchema.validate(query);
+    if (schema.error) {
+      throw HttpError(400, schema.error.details[0].message);
+    }
+    const { name, email, phone } = query;
+    const contact = await contactsService.addContact(name, email, phone);
+    res.status(201).json(contact);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateContact = async (req, res, next) => {
+  try {
+    const query = req.query;
+    const schema = updateContactSchema.validate(query);
+    if (schema.error) {
+      throw HttpError(400, schema.error.details[0].message);
+    }
     const { id } = req.params;
     const contact = await contactsService.updateContact(id.slice(1), query);
-    if (contact) {
-      res.json(contact);
-    } else res.status(404).json({ message: HttpError(404).message });
+    if (!contact) throw HttpError(404);
+    res.json(contact);
+  } catch (error) {
+    next(error);
   }
 };
