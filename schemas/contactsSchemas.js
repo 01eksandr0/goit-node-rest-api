@@ -15,8 +15,9 @@ export const createContactSchema = Joi.object({
 });
 
 export const updateContactSchema = Joi.object({
-  name: Joi.string().min(3).max(20).optional(),
+  name: Joi.string().min(1).max(20).optional(),
   email: Joi.string()
+    .min(3)
     .email({
       minDomainSegments: 2,
       tlds: { allow: ["com", "net"] },
@@ -24,6 +25,5 @@ export const updateContactSchema = Joi.object({
     .optional(),
   phone: Joi.string()
     .optional()
-    .optional()
     .pattern(/^[0-9]{10}$/),
-});
+}).or("name", "email", "phone");
