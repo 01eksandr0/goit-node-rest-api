@@ -1,8 +1,5 @@
 import HttpError from "../helpers/HttpError.js";
-import {
-  createContactSchema,
-  updateContactSchema,
-} from "../schemas/contactsSchemas.js";
+import { createContactSchema } from "../schemas/contactsSchemas.js";
 import contactsService from "../services/contactsServices.js";
 export const getAllContacts = async (req, res) => {
   res.json(await contactsService.listContacts());
@@ -48,10 +45,6 @@ export const createContact = async (req, res, next) => {
 export const updateContact = async (req, res, next) => {
   try {
     const query = req.query;
-    const schema = updateContactSchema.validate(query);
-    if (schema.error) {
-      throw HttpError(400, schema.error.details[0].message);
-    }
     const { id } = req.params;
     const contact = await contactsService.updateContact(id.slice(1), query);
     if (!contact) throw HttpError(404);

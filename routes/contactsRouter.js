@@ -6,6 +6,7 @@ import {
   createContact,
   updateContact,
 } from "../controllers/contactsControllers.js";
+import { validateContact } from "./middlewareValidate.js";
 
 const contactsRouter = express.Router();
 
@@ -15,12 +16,7 @@ contactsRouter.get("/:id", getOneContact);
 
 contactsRouter.delete("/:id", deleteContact);
 
-contactsRouter.use((req, res, next) => {
-  const { name, email, phone } = req.query;
-  if (!name && !email && !phone)
-    res.status(400).json({ message: "Body must have at least one field" });
-  next();
-});
+contactsRouter.use(validateContact);
 
 contactsRouter.post("/", createContact);
 
