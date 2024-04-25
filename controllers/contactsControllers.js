@@ -8,7 +8,7 @@ export const getAllContacts = async (req, res) => {
 export const getOneContact = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const contact = await contactsService.getContactById(id.slice(1));
+    const contact = await contactsService.getContactById(id);
     if (!contact) throw HttpError(404);
     else res.json(contact);
   } catch (error) {
@@ -19,7 +19,7 @@ export const getOneContact = async (req, res, next) => {
 export const deleteContact = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const contact = await contactsService.removeContact(id.slice(1));
+    const contact = await contactsService.removeContact(id);
     if (!contact) throw HttpError(404);
     else res.json(contact);
   } catch (error) {
@@ -46,7 +46,7 @@ export const updateContact = async (req, res, next) => {
   try {
     const query = req.query;
     const { id } = req.params;
-    const contact = await contactsService.updateContact(id.slice(1), query);
+    const contact = await contactsService.updateContact(id, query);
     if (!contact) throw HttpError(404);
     res.json(contact);
   } catch (error) {
