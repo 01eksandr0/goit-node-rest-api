@@ -29,12 +29,11 @@ export const deleteContact = async (req, res, next) => {
 
 export const createContact = async (req, res, next) => {
   try {
-    const query = req.query;
-    const schema = createContactSchema.validate(query);
+    const schema = createContactSchema.validate(req.body);
     if (schema.error) {
       throw HttpError(400, schema.error.details[0].message);
     }
-    const { name, email, phone } = query;
+    const { name, email, phone } = req.body;
     const contact = await contactsService.addContact(name, email, phone);
     res.status(201).json(contact);
   } catch (error) {
@@ -44,9 +43,8 @@ export const createContact = async (req, res, next) => {
 
 export const updateContact = async (req, res, next) => {
   try {
-    const query = req.query;
     const { id } = req.params;
-    const contact = await contactsService.updateContact(id, query);
+    const contact = await contactsService.updateContact(id, req.body);
     if (!contact) throw HttpError(404);
     res.json(contact);
   } catch (error) {
