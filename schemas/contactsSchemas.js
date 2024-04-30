@@ -26,6 +26,7 @@ export const updateContactSchema = Joi.object({
   phone: Joi.string()
     .optional()
     .pattern(/^[0-9]{10}$/),
+  favorite: Joi.boolean().optional(),
 })
   .min(1)
   .message("Body must have at least one field");

@@ -2,9 +2,11 @@ import express from "express";
 import morgan from "morgan";
 import cors from "cors";
 import bodyParser from "body-parser";
-
 import contactsRouter from "./routes/contactsRouter.js";
-
+import mongoose from "mongoose";
+import { configDotenv } from "dotenv";
+configDotenv();
+const URL = process.env.URL_DB || "";
 const app = express();
 
 app.use(morgan("tiny"));
@@ -13,16 +15,23 @@ app.use(express.json());
 app.use(bodyParser.json());
 
 app.use("/api/contacts", contactsRouter);
-
 app.use((_, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   const { status = 500, message = "Server error" } = err;
   res.status(status).json({ message });
 });
 
-app.listen(3000, () => {
-  console.log("Server is running. Use our API on port: 3000");
-});
+mongoose
+  .connect(URL)
+  .then(() => {
+    app.listen(3000, () => {
+      console.log("Database connection successful");
+    });
+  })
+  .catch((err) => {
+    console.log(`Server not running. Error message: ${err.message}`);
+    process.exit(1);
+  });
