@@ -51,3 +51,17 @@ export const updateContact = async (req, res, next) => {
     next(error);
   }
 };
+
+export const updateFavorite = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const contact = await contactsService.updateStatusContact(
+      id,
+      req.body.favorite
+    );
+    if (!contact) throw HttpError(404);
+    res.json(contact);
+  } catch (error) {
+    next(error);
+  }
+};
