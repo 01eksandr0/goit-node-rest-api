@@ -8,7 +8,11 @@ import {
   updateFavorite,
 } from "../controllers/contactsControllers.js";
 import { validateContact } from "./middlewareValidate.js";
-import { updateContactSchema } from "../schemas/contactsSchemas.js";
+import {
+  createContactSchema,
+  updateContactSchema,
+  updateFavoriteSchema,
+} from "../schemas/contactsSchemas.js";
 import { validateContactsId } from "./validateContactsId.js";
 
 const contactsRouter = express.Router();
@@ -19,7 +23,7 @@ contactsRouter.get("/:id", validateContactsId, getOneContact);
 
 contactsRouter.delete("/:id", validateContactsId, deleteContact);
 
-contactsRouter.post("/", validateContact(updateContactSchema), createContact);
+contactsRouter.post("/", validateContact(createContactSchema), createContact);
 
 contactsRouter.put(
   "/:id",
@@ -31,7 +35,7 @@ contactsRouter.put(
 contactsRouter.put(
   "/:id/favorite",
   validateContactsId,
-  validateContact(updateContactSchema),
+  validateContact(updateFavoriteSchema),
   updateFavorite
 );
 
