@@ -1,7 +1,7 @@
 import { Contact } from "../models/contact.js";
 
-const listContacts = async () => {
-  return Contact.find();
+const listContacts = async (owner, skip, limit) => {
+  return Contact.find({ owner }, "", { skip, limit });
 };
 
 const getContactById = async (id) => {
@@ -12,8 +12,8 @@ const removeContact = async (id) => {
   return Contact.findOneAndDelete({ _id: id });
 };
 
-const addContact = async (name, email, phone) => {
-  return Contact.create({ name, email, phone });
+const addContact = async (body) => {
+  return Contact.create(body);
 };
 
 const updateContact = async (id, data) => {

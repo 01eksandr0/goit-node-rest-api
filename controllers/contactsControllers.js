@@ -2,7 +2,10 @@ import HttpError from "../helpers/HttpError.js";
 import { createContactSchema } from "../schemas/contactsSchemas.js";
 import contactsService from "../services/contactsServices.js";
 export const getAllContacts = async (req, res) => {
-  res.json(await contactsService.listContacts());
+  const { page = 1, limit = 10 } = req.query;
+  const skip = (page - 1) * limit;
+  const owner = req.user._id;
+  res.json(await contactsService.listContacts(owner, skip, limit));
 };
 
 export const getOneContact = async (req, res, next) => {
@@ -29,8 +32,8 @@ export const deleteContact = async (req, res, next) => {
 
 export const createContact = async (req, res, next) => {
   try {
-    const { name, email, phone } = req.body;
-    const contact = await contactsService.addContact(name, email, phone);
+    const owner = req.user._id;
+    const contact = await contactsService.addContact({ ...req.body, owner });
     res.status(201).json(contact);
   } catch (error) {
     next(error);
