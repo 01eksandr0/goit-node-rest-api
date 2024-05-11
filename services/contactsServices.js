@@ -4,24 +4,24 @@ const listContacts = async (owner, skip, limit) => {
   return Contact.find({ owner }, "", { skip, limit });
 };
 
-const getContactById = async (id) => {
-  return Contact.findOne({ _id: id });
+const getContactById = async (id, owner) => {
+  return Contact.findOne({ _id: id, owner });
 };
 
-const removeContact = async (id) => {
-  return Contact.findOneAndDelete({ _id: id });
+const removeContact = async (id, owner) => {
+  return Contact.findOneAndDelete({ _id: id, owner });
 };
 
 const addContact = async (body) => {
   return Contact.create(body);
 };
 
-const updateContact = async (id, data) => {
-  return Contact.findByIdAndUpdate({ _id: id }, data, { new: true });
+const updateContact = async (id, data, owner) => {
+  return Contact.findOneAndDelete({ _id: id, owner }, data, { new: true });
 };
-const updateStatusContact = async (id, status) => {
-  return Contact.findByIdAndUpdate(
-    { _id: id },
+const updateStatusContact = async (id, status, owner) => {
+  return Contact.findOneAndDelete(
+    { _id: id, owner },
     { favorite: status },
     { new: true }
   );
