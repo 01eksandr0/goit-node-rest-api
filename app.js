@@ -5,6 +5,7 @@ import bodyParser from "body-parser";
 import contactsRouter from "./routes/contactsRouter.js";
 import mongoose from "mongoose";
 import { configDotenv } from "dotenv";
+import authRouter from "./routes/authRouter.js";
 configDotenv();
 const URL = process.env.URL_DB || "";
 const app = express();
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use(bodyParser.json());
 
 app.use("/api/contacts", contactsRouter);
+app.use("/api/users", authRouter);
 app.use((_, res) => {
   res.status(404).json({ message: "Route not found" });
 });

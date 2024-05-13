@@ -2,13 +2,17 @@ import HttpError from "../helpers/HttpError.js";
 import { createContactSchema } from "../schemas/contactsSchemas.js";
 import contactsService from "../services/contactsServices.js";
 export const getAllContacts = async (req, res) => {
-  res.json(await contactsService.listContacts());
+  const { page = 1, limit = 10 } = req.query;
+  const skip = (page - 1) * limit;
+  const owner = req.user._id;
+  res.json(await contactsService.listContacts(owner, skip, limit));
 };
 
 export const getOneContact = async (req, res, next) => {
   try {
+    const owner = req.user._id;
     const { id } = req.params;
-    const contact = await contactsService.getContactById(id);
+    const contact = await contactsService.getContactById(id, owner);
     if (!contact) throw HttpError(404);
     else res.json(contact);
   } catch (error) {
@@ -18,8 +22,9 @@ export const getOneContact = async (req, res, next) => {
 
 export const deleteContact = async (req, res, next) => {
   try {
+    const owner = req.user._id;
     const { id } = req.params;
-    const contact = await contactsService.removeContact(id);
+    const contact = await contactsService.removeContact(id, owner);
     if (!contact) throw HttpError(404);
     else res.json(contact);
   } catch (error) {
@@ -29,8 +34,8 @@ export const deleteContact = async (req, res, next) => {
 
 export const createContact = async (req, res, next) => {
   try {
-    const { name, email, phone } = req.body;
-    const contact = await contactsService.addContact(name, email, phone);
+    const owner = req.user._id;
+    const contact = await contactsService.addContact({ ...req.body, owner });
     res.status(201).json(contact);
   } catch (error) {
     next(error);
@@ -39,8 +44,9 @@ export const createContact = async (req, res, next) => {
 
 export const updateContact = async (req, res, next) => {
   try {
+    const owner = req.user._id;
     const { id } = req.params;
-    const contact = await contactsService.updateContact(id, req.body);
+    const contact = await contactsService.updateContact(id, req.body, owner);
     if (!contact) throw HttpError(404);
     res.json(contact);
   } catch (error) {
@@ -50,10 +56,12 @@ export const updateContact = async (req, res, next) => {
 
 export const updateFavorite = async (req, res, next) => {
   try {
+    const owner = req.user._id;
     const { id } = req.params;
     const contact = await contactsService.updateStatusContact(
       id,
-      req.body.favorite
+      req.body.favorite,
+      owner
     );
     if (!contact) throw HttpError(404);
     res.json(contact);
