@@ -2,6 +2,16 @@ import bcrypt from "bcryptjs";
 import HttpError from "../helpers/HttpError.js";
 import { User } from "../models/user.js";
 import jwt from "jsonwebtoken";
+import gravatar from "gravatar";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+import Jimp from "jimp";
+import fs from "fs/promises";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const avatarsDir = join(__dirname, "../", "public", "avatars");
 
 export const registrUser = async (req, res, next) => {
   try {
@@ -9,10 +19,12 @@ export const registrUser = async (req, res, next) => {
     if (existingUser) {
       throw HttpError(409, "Email in use");
     }
+    const avatarURL = gravatar.url(req.body.email);
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
     const newUser = await User.create({
       email: req.body.email,
       password: hashedPassword,
+      avatarURL,
     });
     res.status(201).json({
       user: {
@@ -59,4 +71,24 @@ export const logoutUser = async (req, res) => {
   const { _id } = req.user;
   await User.findByIdAndUpdate(_id, { token: null });
   res.status(204).json();
+};
+
+export const changeAvatars = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      throw new HttpError(400, "File is missing");
+    }
+    const { _id } = req.user;
+    const { path: tempPath, originalname } = req.file;
+    const fileName = `${_id}${originalname}`;
+    const resultUpload = join(avatarsDir, fileName);
+    const image = await Jimp.read(tempPath);
+    await image.resize(250, 250).write(resultUpload);
+    await fs.rename(tempPath, resultUpload);
+    const avatarURL = `/avatars/${fileName}`;
+    await User.findByIdAndUpdate(_id, { avatarURL });
+    res.json({ avatarURL });
+  } catch (error) {
+    next(error);
+  }
 };
