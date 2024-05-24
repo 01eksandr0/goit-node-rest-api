@@ -9,6 +9,7 @@ import Jimp from "jimp";
 import fs from "fs/promises";
 import { sendMail } from "../helpers/sendEmail.js";
 import { nanoid } from "nanoid";
+import { createConfigSendgrid } from "../helpers/createConfigSendgrid.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -30,11 +31,7 @@ export const registrUser = async (req, res, next) => {
       avatarURL,
       verificationToken,
     });
-    const verifyEmail = {
-      to: req.body.email,
-      subject: "Verify email",
-      html: `<a target="_blank" href="${process.env.BASE_URL}/api/users/verify/${verificationToken}">Click verify email</a>`,
-    };
+    const verifyEmail = createConfigSendgrid(req.body.email, verificationToken);
 
     await sendMail(verifyEmail);
 
@@ -139,11 +136,10 @@ export const resendVerifyEmail = async (req, res) => {
     if (user.verify) {
       throw HttpError(400, "Verification has already been passed");
     }
-    const verifyEmail = {
-      to: email,
-      subject: "Verify email",
-      html: `<a target="_blank" href="${process.env.BASE_URL}/api/users/verify/${user.verificationToken}">Click verify email</a>`,
-    };
+    const verifyEmail = createConfigSendgrid(
+      req.body.email,
+      req.user.verificationToken
+    );
 
     await sendMail(verifyEmail);
     res.json({
