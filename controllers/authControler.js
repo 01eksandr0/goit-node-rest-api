@@ -7,6 +7,8 @@ import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import Jimp from "jimp";
 import fs from "fs/promises";
+import { sendMail } from "../helpers/sendEmail.js";
+import { nanoid } from "nanoid";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -19,13 +21,23 @@ export const registrUser = async (req, res, next) => {
     if (existingUser) {
       throw HttpError(409, "Email in use");
     }
+    const verificationToken = nanoid();
     const avatarURL = gravatar.url(req.body.email);
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
     const newUser = await User.create({
       email: req.body.email,
       password: hashedPassword,
       avatarURL,
+      verificationToken,
     });
+    const verifyEmail = {
+      to: req.body.email,
+      subject: "Verify email",
+      html: `<a target="_blank" href="${process.env.BASE_URL}/api/users/verify/${verificationToken}">Click verify email</a>`,
+    };
+
+    await sendMail(verifyEmail);
+
     res.status(201).json({
       user: {
         email: newUser.email,
@@ -88,6 +100,55 @@ export const changeAvatars = async (req, res, next) => {
     const avatarURL = `/avatars/${fileName}`;
     await User.findByIdAndUpdate(_id, { avatarURL });
     res.json({ avatarURL });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const verifyEmail = async (req, res) => {
+  const { verificationToken } = req.params;
+
+  const user = await User.findOne({ verificationToken });
+
+  if (!user) {
+    throw HttpError(401, "Email not found");
+  }
+  await User.findByIdAndUpdate(user._id, {
+    verify: true,
+    verificationToken: "",
+  });
+  res.json({
+    message: "Verification successful",
+  });
+};
+
+export const resendVerifyEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "missing required field email" });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      throw HttpError(401, "Email not found");
+    }
+
+    if (user.verify) {
+      throw HttpError(400, "Verification has already been passed");
+    }
+    const verifyEmail = {
+      to: email,
+      subject: "Verify email",
+      html: `<a target="_blank" href="${process.env.BASE_URL}/api/users/verify/${user.verificationToken}">Click verify email</a>`,
+    };
+
+    await sendMail(verifyEmail);
+    res.json({
+      message: "Verification email sent",
+    });
   } catch (error) {
     next(error);
   }

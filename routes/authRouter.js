@@ -5,6 +5,8 @@ import {
   loginUser,
   logoutUser,
   registrUser,
+  resendVerifyEmail,
+  verifyEmail,
 } from "../controllers/authControler.js";
 import { validateContact } from "./middlewareValidate.js";
 import { authSchema } from "../schemas/userSchemas.js";
@@ -23,5 +25,7 @@ authRouter.patch(
   upload.single("avatar"),
   changeAvatars
 );
+authRouter.post("/verify", validateContact(authSchema), resendVerifyEmail);
+authRouter.get("/verify/:verificationToken", verifyEmail);
 
 export default authRouter;
